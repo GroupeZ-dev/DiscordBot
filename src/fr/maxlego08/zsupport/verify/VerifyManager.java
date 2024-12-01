@@ -193,7 +193,7 @@ public class VerifyManager extends ZUtils {
             con.setRequestProperty("User-Agent", this.USER__AGENT);
             con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
 
-            // Send post request
+            // Send post-request
             con.setDoOutput(true);
             DataOutputStream wr = new DataOutputStream(con.getOutputStream());
             wr.flush();
@@ -466,7 +466,7 @@ public class VerifyManager extends ZUtils {
             con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
             con.setRequestProperty("Content-Type", "application/json");
 
-            // Send post request
+            // Send post-request
             con.setDoOutput(true);
 
             OutputStream os = con.getOutputStream();

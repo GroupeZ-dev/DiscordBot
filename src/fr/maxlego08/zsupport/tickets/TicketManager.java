@@ -31,9 +31,11 @@ import net.dv8tion.jda.api.managers.channel.concrete.TextChannelManager;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 import java.awt.*;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -383,7 +385,7 @@ public class TicketManager extends ZUtils {
 
     public void verifyVersion(Ticket ticket, TextChannel textChannel, Guild guild, String version) {
         PluginManager.fetchResource(ticket.getPlugin(), resource -> {
-            boolean isLastVersion = version.equals(resource.getVersion().getVersion());
+            boolean isLastVersion = version.equals(resource.getVersion().getVersion()) || version.equalsIgnoreCase("latest");
 
             if (!isLastVersion) {
                 EmbedBuilder builder = new EmbedBuilder();
@@ -457,28 +459,27 @@ public class TicketManager extends ZUtils {
 
                         EmbedBuilder builder = new EmbedBuilder();
                         setEmbedFooter(event.getGuild(), builder, new Color(23, 195, 26));
-                        setDescription(builder,
-                                ":wave: Welcome to the zMenu Community Forum.",
-                                "You can ask for help on your configurations or for bug reports.",
-                                "",
-                                ":information_source: Rules:",
-                                "1. Be respectful with the users who will help you.",
-                                "2. Give as much information as possible about your problem. You must give the version of your server and the version of the plugin.",
-                                "3. Do not mention the GroupeZ staff",
-                                "4. Give as much information as possible so that we can quickly help you.",
-                                "",
-                                ":flag_us: Documentation: https://zmenu.groupez.dev/",
-                                ":flag_fr: Documentation en français: https://docs.zmenu.dev/v/fr/",
-                                "",
-                                "**Want personality support per ticket?**",
-                                "Upgrade your premium account to open tickets for zMenu:",
-                                "https://minecraft-inventory-builder.com/account-upgrade"
-                        );
+                        setDescription(builder, ":wave: Welcome to the zMenu Community Forum.", "You can ask for help on your configurations or for bug reports.", "", ":information_source: Rules:", "1. Be respectful with the users who will help you.", "2. Give as much information as possible about your problem. You must give the version of your server and the version of the plugin.", "3. Do not mention the GroupeZ staff", "4. Give as much information as possible so that we can quickly help you.", "", ":flag_us: Documentation: https://zmenu.groupez.dev/", ":flag_fr: Documentation en français: https://docs.zmenu.dev/v/fr/", "", "**Want personality support per ticket?**", "Upgrade your premium account to open tickets for zMenu:", "https://minecraft-inventory-builder.com/account-upgrade");
                         threadChannel.sendMessageEmbeds(builder.build()).queue();
 
                     }
                 });
             }
+        }
+    }
+
+    public void sendVacationInformations(Guild guild) {
+
+        var vacation = Config.vacation;
+        var format = new SimpleDateFormat("dd/MM/yyyy");
+
+        for (Ticket ticket : tickets) {
+
+            if (!ticket.isValid(guild)) continue;
+
+            var channel = ticket.getTextChannel(guild);
+            var user = ticket.getUser();
+            channel.sendMessage(user.getAsMention() + " GroupeZ informs you that **Maxlego08** is on vacation from " + format.format(new Date(vacation.getStartAt())) + " to " + format.format(new Date(vacation.getEndAt())) + ". The support will be slower, please be patient.").queue();
         }
     }
 }

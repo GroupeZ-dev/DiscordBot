@@ -56,6 +56,7 @@ public class MemberListener extends ListenerAdapter implements Constant {
 
 		Guild guild = event.getGuild();
 		Role role = guild.getRoleById(ROLE_DEFAULT);
+		if (role == null) return;
 		Member member = event.getMember();
 		guild.addRoleToMember(member, role).queue();
 

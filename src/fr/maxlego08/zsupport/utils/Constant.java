@@ -3,7 +3,7 @@ package fr.maxlego08.zsupport.utils;
 public interface Constant {
 
     String YEAR = "2024";
-    String VERSION = "4.0.3";
+    String VERSION = "4.0.4";
     String PREFIX_CONSOLE = "[zSupport V" + VERSION + "] ";
     String COMMAND_PREFIX = "!";
 

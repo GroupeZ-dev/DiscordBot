@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.groupez.discord</groupId>
 	<artifactId>zSupport</artifactId>
-	<version>4.0.1</version>
+	<version>4.0.4</version>
 	<properties>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
