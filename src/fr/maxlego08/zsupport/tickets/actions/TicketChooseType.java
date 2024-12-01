@@ -1,6 +1,7 @@
 package fr.maxlego08.zsupport.tickets.actions;
 
 import fr.maxlego08.zsupport.Config;
+import fr.maxlego08.zsupport.lang.LangType;
 import fr.maxlego08.zsupport.lang.Message;
 import fr.maxlego08.zsupport.tickets.TicketStatus;
 import fr.maxlego08.zsupport.tickets.TicketType;
@@ -32,18 +33,33 @@ public class TicketChooseType extends TicketAction {
             Emoji emoji = Config.getSpigotEmoji(guild);
             EmbedBuilder builder = this.createEmbed();
 
-            setDescription(builder,
-                    "**Please choose the type of your ticket**:",
-                    ":white_check_mark: To verify your purchase",
-                    ":question: To request help on a plugin",
-                    emoji.getFormatted() + " To request access on spigot",
-                    ":wave: Questions before purchase",
-                    "",
-                    "```ansi\n" +
-                            "\u001B[2;31mPlease choose your ticket type correctly. Your ticket may be closed if your request does not match the ticket type.\u001B[0m\n" +
-                            "```"
-            );
-            builder.setDescription(getMessage(this.ticket.getLangType(), Message.TICKET_CHOOSE, emoji.getFormatted()));
+            if (this.ticket.getLangType() == LangType.US) {
+
+                setDescription(builder,
+                        "**Please choose the type of your ticket**:",
+                        ":white_check_mark: To verify your purchase",
+                        ":question: To request help on a plugin",
+                        emoji.getFormatted() + " To request access on spigot",
+                        ":wave: Questions before purchase",
+                        "",
+                        "```ansi\n" +
+                                "\u001B[2;31mPlease choose your ticket type correctly. Your ticket may be closed if your request does not match the ticket type.\u001B[0m\n" +
+                                "```"
+                );
+            } else {
+                setDescription(builder,
+                        "**Veuillez choisir le type de votre ticket**:",
+                        ":white_check_mark: Pour vérifier votre achat",
+                        ":question: Pour demander de l'aide sur un plugin",
+                        emoji.getFormatted() + " Pour demander l'accès sur spigot",
+                        ":wave: Questions avant achat",
+                        "",
+                        "```ansi\n" +
+                                "\u001B[2;31mVeuillez choisir correctement le type de votre ticket. Votre ticket peut être fermé si votre demande ne correspond pas au type de ticket.\u001B[0m\n" +
+                                "```"
+                );
+            }
+
 
             MessageCreateAction action = textChannel.sendMessageEmbeds(builder.build());
 

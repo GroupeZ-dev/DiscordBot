@@ -28,7 +28,9 @@ public class CommandVacation extends VCommand {
                 new CommandChoice("J+4", String.valueOf(System.currentTimeMillis() + (4 * 86400 * 1000))),
                 new CommandChoice("J+5", String.valueOf(System.currentTimeMillis() + (5 * 86400 * 1000))),
                 new CommandChoice("J+6", String.valueOf(System.currentTimeMillis() + (6 * 86400 * 1000))),
-                new CommandChoice("J+7", String.valueOf(System.currentTimeMillis() + (7 * 86400 * 1000)))
+                new CommandChoice("J+7", String.valueOf(System.currentTimeMillis() + (7 * 86400 * 1000))),
+                new CommandChoice("J+14", String.valueOf(System.currentTimeMillis() + (14 * 86400 * 1000))),
+                new CommandChoice("J+21", String.valueOf(System.currentTimeMillis() + (21 * 86400 * 1000)))
         );
         this.addRequireArg(OptionType.STRING, "start", "Start timestamp", choices);
         this.addRequireArg(OptionType.STRING, "end", "Faq timestamp", choices);
@@ -48,6 +50,8 @@ public class CommandVacation extends VCommand {
         Config.vacation = new Vacation(start, end);
 
         event.reply(":white_check_mark: Vous venez de commencer vos vacances, profitez bien !").setEphemeral(true).queue();
+
+        instance.getTicketManager().sendVacationInformations(event.getGuild());
 
         return CommandType.SUCCESS;
     }

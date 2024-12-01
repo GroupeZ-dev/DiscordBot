@@ -31,9 +31,11 @@ import net.dv8tion.jda.api.managers.channel.concrete.TextChannelManager;
 import net.dv8tion.jda.api.requests.restaction.MessageCreateAction;
 
 import java.awt.*;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -44,6 +46,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class TicketManager extends ZUtils {
 
@@ -164,18 +167,27 @@ public class TicketManager extends ZUtils {
                 message.editOriginalEmbeds(builder.build()).queue();
             };
 
-            Runnable successRunnable = () -> {
+            Consumer<VerifyManager.UserData> successRunnable = userData -> {
                 Category category = getTicketCategory(guild);
-                category.createTextChannel("ticket-waiting").queue(ticketChannel -> createTicket(user, guild, langType, event, ticketChannel, errorRunnable, message, ticketStatus));
+                category.createTextChannel("ticket-waiting").queue(ticketChannel -> createTicket(user, guild, langType, event, ticketChannel, errorRunnable, message, ticketStatus, userData));
             };
 
             // if its zmenu, skip groupez verification
-            if (ticketStatus == TicketStatus.VERIFY_ZMENU_PURCHASE) successRunnable.run();
+            if (ticketStatus == TicketStatus.VERIFY_ZMENU_PURCHASE) successRunnable.accept(null);
             else manager.userIsLink(user, successRunnable, errorRunnable);
         });
     }
 
-    private void createTicket(User user, Guild guild, LangType langType, ButtonInteractionEvent event, TextChannel ticketChannel, Runnable errorRunnable, InteractionHook message, TicketStatus ticketStatus) {
+    private void sendUserData(TextChannel textChannel, VerifyManager.UserData userData) {
+        if (userData == null) return;
+
+        EmbedBuilder embedBuilder = new EmbedBuilder();
+        embedBuilder.setTitle(userData.name(), String.format("https://groupez.dev/dashboard/users/%s", userData.id()));
+        embedBuilder.setThumbnail(userData.avatar());
+        textChannel.sendMessageEmbeds(embedBuilder.build()).queue();
+    }
+
+    private void createTicket(User user, Guild guild, LangType langType, ButtonInteractionEvent event, TextChannel ticketChannel, Runnable errorRunnable, InteractionHook message, TicketStatus ticketStatus, VerifyManager.UserData userData) {
 
         // Création du nouveau ticket après la vérification de l'utilisateur
         Ticket ticket = new Ticket(langType, ticketChannel.getIdLong(), user.getIdLong(), ticketStatus, TicketType.WAITING);
@@ -183,6 +195,8 @@ public class TicketManager extends ZUtils {
         if (ticketStatus == TicketStatus.VERIFY_ZMENU_PURCHASE) ticket.setPluginId(Config.zMenu.getPluginId());
 
         this.sqlManager.createTicket(ticket, user.getName(), () -> {
+
+            sendUserData(ticketChannel, userData);
 
             TicketAction action = ticketStatus.getAction();
             ticket.setTicketAction(action);
@@ -383,7 +397,7 @@ public class TicketManager extends ZUtils {
 
     public void verifyVersion(Ticket ticket, TextChannel textChannel, Guild guild, String version) {
         PluginManager.fetchResource(ticket.getPlugin(), resource -> {
-            boolean isLastVersion = version.equals(resource.getVersion().getVersion());
+            boolean isLastVersion = version.equals(resource.getVersion().getVersion()) || version.equalsIgnoreCase("latest");
 
             if (!isLastVersion) {
                 EmbedBuilder builder = new EmbedBuilder();
@@ -457,28 +471,27 @@ public class TicketManager extends ZUtils {
 
                         EmbedBuilder builder = new EmbedBuilder();
                         setEmbedFooter(event.getGuild(), builder, new Color(23, 195, 26));
-                        setDescription(builder,
-                                ":wave: Welcome to the zMenu Community Forum.",
-                                "You can ask for help on your configurations or for bug reports.",
-                                "",
-                                ":information_source: Rules:",
-                                "1. Be respectful with the users who will help you.",
-                                "2. Give as much information as possible about your problem. You must give the version of your server and the version of the plugin.",
-                                "3. Do not mention the GroupeZ staff",
-                                "4. Give as much information as possible so that we can quickly help you.",
-                                "",
-                                ":flag_us: Documentation: https://zmenu.groupez.dev/",
-                                ":flag_fr: Documentation en français: https://docs.zmenu.dev/v/fr/",
-                                "",
-                                "**Want personality support per ticket?**",
-                                "Upgrade your premium account to open tickets for zMenu:",
-                                "https://minecraft-inventory-builder.com/account-upgrade"
-                        );
+                        setDescription(builder, ":wave: Welcome to the zMenu Community Forum.", "You can ask for help on your configurations or for bug reports.", "", ":information_source: Rules:", "1. Be respectful with the users who will help you.", "2. Give as much information as possible about your problem. You must give the version of your server and the version of the plugin.", "3. Do not mention the GroupeZ staff", "4. Give as much information as possible so that we can quickly help you.", "", ":flag_us: Documentation: https://zmenu.groupez.dev/", ":flag_fr: Documentation en français: https://docs.zmenu.dev/v/fr/", "", "**Want personality support per ticket?**", "Upgrade your premium account to open tickets for zMenu:", "https://minecraft-inventory-builder.com/account-upgrade");
                         threadChannel.sendMessageEmbeds(builder.build()).queue();
 
                     }
                 });
             }
+        }
+    }
+
+    public void sendVacationInformations(Guild guild) {
+
+        var vacation = Config.vacation;
+        var format = new SimpleDateFormat("dd/MM/yyyy");
+
+        for (Ticket ticket : tickets) {
+
+            if (!ticket.isValid(guild)) continue;
+
+            var channel = ticket.getTextChannel(guild);
+            var user = ticket.getUser();
+            channel.sendMessage(user.getAsMention() + " GroupeZ informs you that **Maxlego08** is on vacation from " + format.format(new Date(vacation.getStartAt())) + " to " + format.format(new Date(vacation.getEndAt())) + ". The support will be slower, please be patient.").queue();
         }
     }
 }

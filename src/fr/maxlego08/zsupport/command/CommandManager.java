@@ -187,7 +187,7 @@ public class CommandManager extends ZUtils implements Constant {
             CommandType returnType = command.prePerform(support, sender, strings, event);
 
             if (returnType == CommandType.SYNTAX_ERROR) {
-                sender.sendMessage(event, BasicMessage.COMMAND_SYNTAXE_ERROR, true, command.getSyntaxe());
+                sender.sendMessage(event, BasicMessage.COMMAND_SYNTAX_ERROR, true, command.getSyntaxe());
             }
 
             return returnType;
