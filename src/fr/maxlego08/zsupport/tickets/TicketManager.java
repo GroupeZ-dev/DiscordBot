@@ -46,6 +46,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public class TicketManager extends ZUtils {
 
@@ -166,18 +167,27 @@ public class TicketManager extends ZUtils {
                 message.editOriginalEmbeds(builder.build()).queue();
             };
 
-            Runnable successRunnable = () -> {
+            Consumer<VerifyManager.UserData> successRunnable = userData -> {
                 Category category = getTicketCategory(guild);
-                category.createTextChannel("ticket-waiting").queue(ticketChannel -> createTicket(user, guild, langType, event, ticketChannel, errorRunnable, message, ticketStatus));
+                category.createTextChannel("ticket-waiting").queue(ticketChannel -> createTicket(user, guild, langType, event, ticketChannel, errorRunnable, message, ticketStatus, userData));
             };
 
             // if its zmenu, skip groupez verification
-            if (ticketStatus == TicketStatus.VERIFY_ZMENU_PURCHASE) successRunnable.run();
+            if (ticketStatus == TicketStatus.VERIFY_ZMENU_PURCHASE) successRunnable.accept(null);
             else manager.userIsLink(user, successRunnable, errorRunnable);
         });
     }
 
-    private void createTicket(User user, Guild guild, LangType langType, ButtonInteractionEvent event, TextChannel ticketChannel, Runnable errorRunnable, InteractionHook message, TicketStatus ticketStatus) {
+    private void sendUserData(TextChannel textChannel, VerifyManager.UserData userData) {
+        if (userData == null) return;
+
+        EmbedBuilder embedBuilder = new EmbedBuilder();
+        embedBuilder.setTitle(userData.name(), String.format("https://groupez.dev/dashboard/users/%s", userData.id()));
+        embedBuilder.setThumbnail(userData.avatar());
+        textChannel.sendMessageEmbeds(embedBuilder.build()).queue();
+    }
+
+    private void createTicket(User user, Guild guild, LangType langType, ButtonInteractionEvent event, TextChannel ticketChannel, Runnable errorRunnable, InteractionHook message, TicketStatus ticketStatus, VerifyManager.UserData userData) {
 
         // Création du nouveau ticket après la vérification de l'utilisateur
         Ticket ticket = new Ticket(langType, ticketChannel.getIdLong(), user.getIdLong(), ticketStatus, TicketType.WAITING);
@@ -185,6 +195,8 @@ public class TicketManager extends ZUtils {
         if (ticketStatus == TicketStatus.VERIFY_ZMENU_PURCHASE) ticket.setPluginId(Config.zMenu.getPluginId());
 
         this.sqlManager.createTicket(ticket, user.getName(), () -> {
+
+            sendUserData(ticketChannel, userData);
 
             TicketAction action = ticketStatus.getAction();
             ticket.setTicketAction(action);

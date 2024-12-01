@@ -1,7 +1,9 @@
 package fr.maxlego08.zsupport.verify;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.mysql.cj.xdevapi.JsonParser;
 import fr.maxlego08.zsupport.Config;
 import fr.maxlego08.zsupport.ZSupport;
 import fr.maxlego08.zsupport.lang.BasicMessage;
@@ -175,20 +177,13 @@ public class VerifyManager extends ZUtils {
 
     }
 
-    /**
-     * Permet de v§rifier si l'utilisateur peut cr§er un ticket
-     *
-     * @param user
-     * @param runnableSuccess
-     * @param runnableError
-     */
-    public void userIsLink(User user, Runnable runnableSuccess, Runnable runnableError) {
+    public void userIsLink(User user, Consumer<UserData> consumerSuccess, Runnable runnableError) {
         try {
             String url = String.format(Config.API_URL, user.getIdLong());
             URL obj = new URL(url);
             HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 
-            // add reuqest header
+            // add request header
             con.setRequestMethod("POST");
             con.setRequestProperty("User-Agent", this.USER__AGENT);
             con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
@@ -206,10 +201,35 @@ public class VerifyManager extends ZUtils {
                 return;
             }
 
-            runnableSuccess.run();
+            // Read response
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuilder response = new StringBuilder();
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+
+            Map<String, Object> values = ZSupport.instance.getGson().fromJson(response.toString(), new TypeToken<Map<String, Object>>() {
+            }.getType());
+
+            Map<String, Object> map = (Map<String, Object>) values.get("user");
+            long id = ((Number)map.get("id")).longValue();
+            String name = map.get("name").toString();
+            String avatar = map.get("avatar").toString();
+            UserData linkedUser = new UserData(id, name, avatar);
+
+            // Pass the User object to the consumer
+            consumerSuccess.accept(linkedUser);
         } catch (IOException e) {
             runnableError.run();
         }
+    }
+
+
+    public record UserData(long id, String name, String avatar){
+
     }
 
     public void hasPurchasePlugin(User user, Plugin plugin, Consumer<Boolean> consumer) {
@@ -225,7 +245,7 @@ public class VerifyManager extends ZUtils {
                 httpsURLConnection.setRequestProperty("User-Agent", this.USER__AGENT);
                 httpsURLConnection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
 
-                // Send post request
+                // Send post-request
                 httpsURLConnection.setDoOutput(true);
                 DataOutputStream dataOutputStream = new DataOutputStream(httpsURLConnection.getOutputStream());
                 dataOutputStream.flush();
