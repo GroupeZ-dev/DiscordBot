@@ -12,6 +12,8 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.internal.interactions.component.ButtonImpl;
 
+import java.awt.*;
+
 public class CommandTicketSet extends VCommand {
 
     public CommandTicketSet(CommandManager commandManager) {
@@ -25,25 +27,28 @@ public class CommandTicketSet extends VCommand {
     protected CommandType perform(ZSupport main) {
 
         EmbedBuilder builder = new EmbedBuilder();
-        builder.setTitle("Create a ticket");
+        builder.setTitle("🎫 Create a ticket");
         setEmbedFooter(this.guild, builder);
 
         setDescription(builder,
                 "",
-                "**Informations**:",
-                ":flag_fr: Clique pour créer un ticket",
-                ":warning: Veuillez vérifier que votre compte discord est bien relié sur le site.",
+                "**Ticket Creation Information**",
+                "📌 Click the button below to create a support ticket.",
+                "⚠️ **Important:** Ensure that your Discord account is linked to your GroupeZ account before opening a ticket.",
+                "🔗 Link your account here: [GroupeZ Dashboard](https://groupez.dev/dashboard/account)",
                 "",
-                ":flag_us: Click for create a ticket",
-                ":warning: Please check that your discord account is linked to the site.",
+                "**Rules & Guidelines**",
+                "1️⃣ You must follow the Discord server https://discord.com/channels/511516467615760405/765577829122572318 while using the support system.",
+                "2️⃣ Please follow all instructions given by the bot carefully.",
+                "3️⃣ Provide as much information as possible regarding your issue to receive faster assistance.",
+                "4️⃣ Do **not** mention staff members; they will assist you as soon as possible.",
+                "5️⃣ The GroupeZ support team is in the Paris timezone (UTC+1).",
+                "6️⃣ **Official support hours:** Support is available every week-day from **10:00 AM to 5:00 PM (UTC+1).**",
+                "7️⃣ Response times may vary; please allow **24 to 48 hours** for a reply from a support team member.",
+                "8️⃣ If you are inactive in the ticket for **72 hours**, it will be automatically closed.",
                 "",
-                ":white_check_mark: Link your discord account to the site https://groupez.dev/dashboard/account",
-                "",
-                "**Note**",
-                "**1.** Please provide as much information as possible about your problem.",
-                "**2.** Please do not mention the staff, wait for someone to answer you.",
-                "**3.** The GroupeZ team is located in the timezone Paris (UTC+1)",
-                "**4.** GroupeZ will save your messages in the ticket to keep a history."
+                "**Data Collection & Consent**",
+                "📜 By opening a ticket, you acknowledge and agree that GroupeZ will collect and store messages exchanged in the ticket for record-keeping purposes."
         );
 
         builder.setImage("https://img.groupez.dev/groupez/link-discord.gif");

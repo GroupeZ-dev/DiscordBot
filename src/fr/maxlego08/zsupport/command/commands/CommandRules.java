@@ -54,7 +54,7 @@ public class CommandRules extends VCommand {
     }
 
     private void sendRules() {
-        List<String> rules = new ArrayList<String>();
+        List<String> rules = new ArrayList<>();
         rules.add("```ansi\n" +
                 "It is \u001B[2;31mforbidden\u001B[0m to \u001B[1;2mmention\u001B[0m a staff member (Remember to disable mentions when replying to a message).\n" +
                 "```");
