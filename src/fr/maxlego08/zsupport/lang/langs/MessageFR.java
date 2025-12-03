@@ -72,7 +72,7 @@ public class MessageFR {
 
 		frMessage.put(Message.TICKET_HOUR,
 				":exclamation: Attention, il est actuellement **%s:%s** en france."
-						+ " Le support est disponible uniquement entre **9 heures** et **20 heures** tout les jours."
+						+ " Le support est disponible uniquement entre **9 heures** et **20 heures** tous les jours."
 						+ " Cependant le support se livre le droit d'étre moins actif durant les weekends.");
 
 		frMessage.put(Message.TICKET_PLUGIN_VERSION_COMMAND,

@@ -46,10 +46,7 @@ public class Config implements Savable {
     public static Plugin zMenu = new Plugin("zMenu", 1117502546811048098L, 0, 253, 0.0, "zmenu");
     public static long zMenuForum = 1024590761750184016L;
     public static Vacation vacation = null;
-
-    /**
-     * static Singleton instance.
-     */
+    
     private static volatile Config instance;
 
     static {
@@ -95,9 +92,6 @@ public class Config implements Savable {
         documentations.put("zVaults", "https://zvaults.groupez.dev/");
     }
 
-    /**
-     * Private constructor for singleton.
-     */
     private Config() {
     }
 
@@ -105,9 +99,6 @@ public class Config implements Savable {
         return plugins.stream().filter(e -> e.getPluginId() == plugin_id).findFirst();
     }
 
-    /**
-     * Return a singleton instance of Config.
-     */
     public static Config getInstance() {
         // Double lock for thread safety.
         if (instance == null) {
@@ -120,6 +111,10 @@ public class Config implements Savable {
         return instance;
     }
 
+    public static Emoji getSpigotEmoji(Guild guild) {
+        return guild.getEmojiById(Config.spigotEmote);
+    }
+
     @Override
     public void save(Persist persist) {
         persist.save(getInstance());
@@ -128,10 +123,6 @@ public class Config implements Savable {
     @Override
     public void load(Persist persist) {
         persist.loadOrSaveDefault(getInstance(), Config.class);
-    }
-
-    public static Emoji getSpigotEmoji(Guild guild){
-        return guild.getEmojiById(Config.spigotEmote);
     }
 
 }

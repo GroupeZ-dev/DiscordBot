@@ -48,7 +48,11 @@
 		<repository>
 			<id>public</id>
 			<name>Public Repositories</name>
-			<url>http://repo.mvdw-software.be/content/groups/public/</url>
+			<url>https://repo.mvdw-software.be/content/groups/public/</url>
+		</repository>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
 		</repository>
 	</repositories>
 	<dependencies>
@@ -73,6 +77,10 @@
 			<artifactId>api</artifactId>
 			<version>4.0.0</version>
 		</dependency>
-
+		<dependency>
+			<groupId>com.github.Maxlego08</groupId>
+			<artifactId>Sarah</artifactId>
+			<version>1.17</version>
+		</dependency>
 	</dependencies>
 </project>

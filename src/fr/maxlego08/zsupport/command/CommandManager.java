@@ -180,7 +180,6 @@ public class CommandManager extends ZUtils implements Constant {
                 event.deferReply(true).addEmbeds(builder.build()).queue();
                 return CommandType.DEFAULT;
             }
-
         }
 
         if (command.getPermission() == null || sender.hasPermission(command.getPermission())) {
