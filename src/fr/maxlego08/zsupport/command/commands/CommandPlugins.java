@@ -19,7 +19,7 @@ public class CommandPlugins extends VCommand {
 	protected CommandType perform(ZSupport main) {
 
 		PluginManager manager = new PluginManager();
-		manager.displayPlugins(this.guild);
+		manager.displayPlugins(this.guild, this.textChannel);
 		this.event.deferReply(true).setContent("Envoi de la commande effectuée avec succès.").queue();
 
 		return CommandType.SUCCESS;

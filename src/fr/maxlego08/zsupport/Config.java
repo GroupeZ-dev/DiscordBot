@@ -46,7 +46,7 @@ public class Config implements Savable {
     public static Plugin zMenu = new Plugin("zMenu", 1117502546811048098L, 0, 253, 0.0, "zmenu");
     public static long zMenuForum = 1024590761750184016L;
     public static Vacation vacation = null;
-    
+
     private static volatile Config instance;
 
     static {

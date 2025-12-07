@@ -2,17 +2,13 @@ package fr.maxlego08.zsupport.utils;
 
 public interface Constant {
 
-    String YEAR = "2024";
-    String VERSION = "4.0.4";
+    String YEAR = "2025";
+    String VERSION = "4.0.5";
     String PREFIX_CONSOLE = "[zSupport V" + VERSION + "] ";
     String COMMAND_PREFIX = "!";
 
     int PREMIUM_POWER = 2;
     int PRO_POWER = 3;
-
-    long CHANNEL_ROBOT = 527778577245011988L;
-    long ROLE_NOT_ROBOT = 527778142421647360L; /* IRobot */
-    long ROLE_DEFAULT = 511544747572330506L; /* Simple Parleur */
 
     long SUGGEST_CHANNEL = 898655238565822524L;
     long SUGGEST_UNTREATED_CHANNEL = 898655261772890122L;

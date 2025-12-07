@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class RoleManager implements Savable {
 
-    private static final Map<Long, RoleUser> roles = new HashMap<Long, RoleUser>();
+    private static Map<Long, RoleUser> roles = new HashMap<Long, RoleUser>();
 
     private static volatile RoleManager instance;
 
@@ -55,24 +55,20 @@ public class RoleManager implements Savable {
         return roles.containsKey(id);
     }
 
-    public boolean giveRoles(Guild guild, Member member, Role role) {
+    public void giveRoles(Guild guild, Member member) {
 
-        if (!this.contains(member.getIdLong())) return false;
+        if (!this.contains(member.getIdLong())) return;
 
         RoleUser roleUser = getRole(member.getIdLong());
         for (long currentRole : roleUser.getRoles()) {
             try {
 
                 Role tmpRole = guild.getRoleById(currentRole);
-                guild.addRoleToMember(member, tmpRole).complete();
+                guild.addRoleToMember(member, tmpRole).queue();
 
-            } catch (Exception e) {
-                return false;
+            } catch (Exception ignored) {
             }
         }
-
-        guild.addRoleToMember(member, role).complete();
-        return true;
     }
 
     public boolean haveRole(Role role) {
