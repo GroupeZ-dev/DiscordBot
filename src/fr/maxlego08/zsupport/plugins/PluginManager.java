@@ -4,14 +4,13 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import fr.maxlego08.zsupport.Config;
 import fr.maxlego08.zsupport.ZSupport;
-import fr.maxlego08.zsupport.tickets.Ticket;
 import fr.maxlego08.zsupport.utils.Constant;
 import fr.maxlego08.zsupport.utils.Plugin;
 import fr.maxlego08.zsupport.utils.ZUtils;
 import fr.maxlego08.zsupport.utils.image.ImageHelper;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.internal.interactions.component.ButtonImpl;
@@ -21,6 +20,7 @@ import java.awt.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -77,30 +77,17 @@ public class PluginManager extends ZUtils implements Constant {
 
     }
 
-    /**
-     * Display plugins information
-     *
-     * @param guild
-     */
-    public void displayPlugins(Guild guild) {
-        Thread thread = new Thread(() -> Config.plugins.forEach(plugin -> this.displayPlugin(guild, plugin)));
+    public void displayPlugins(Guild guild, MessageChannel channel) {
+        Thread thread = new Thread(() -> Config.plugins.forEach(plugin -> this.displayPlugin(guild, plugin, channel)));
         thread.start();
     }
 
-    /**
-     * Display plugin informations
-     *
-     * @param guild
-     * @param plugin
-     */
-    public void displayPlugin(Guild guild, Plugin plugin) {
-
-        TextChannel channel = guild.getTextChannelById(Config.pluginsChannel);
+    public void displayPlugin(Guild guild, Plugin plugin, MessageChannel channel) {
 
         try {
 
             String urlAsString = String.format(Config.API_RESOURCE_URL, plugin.getPluginId());
-            URL url = new URL(urlAsString);
+            URL url = URI.create(urlAsString).toURL();
 
             HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
 
@@ -143,8 +130,8 @@ public class PluginManager extends ZUtils implements Constant {
             builder.setTitle(resource.getName(), resource.getResourceUrl());
             builder.setDescription(resource.getTag());
 
-            Button button = new ButtonImpl("btn:link:resource", "Access to the plugin", ButtonStyle.LINK,
-                    resource.getResourceUrl(), false, plugin.getEmote(guild));
+            var message = resource.getPrice() == 0 ? "Download Here" : "Buy here";
+            Button button = new ButtonImpl("btn:link:resource" + resource.getId(), message, ButtonStyle.LINK, resource.getResourceUrl(), false, plugin.getEmote(guild));
             if (channel != null) {
                 channel.sendMessageEmbeds(builder.build()).setActionRow(button).queue();
             }
@@ -153,5 +140,4 @@ public class PluginManager extends ZUtils implements Constant {
             exception.printStackTrace();
         }
     }
-
 }

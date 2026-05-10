@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 public class TicketListener extends ListenerAdapter implements Constant {
 
     private final Map<Long, Integer> pingAmounts = new HashMap<>();
+    private final Map<String, Long> lastInformationsMessage = new HashMap<>();
     private final TicketManager ticketManager;
     private final ErrorManager manager = new ErrorManager();
 
@@ -116,7 +117,22 @@ public class TicketListener extends ListenerAdapter implements Constant {
         } else if (Config.channelsWithInformations.containsKey(channel.getIdLong()) && channel instanceof TextChannel textChannel) {
 
             ChannelType channelType = Config.channelsWithInformations.get(channel.getIdLong());
-            this.ticketManager.sendChannelInformations(event, textChannel, channelType);
+
+            if (channelType == ChannelType.PREMIUM) {
+
+                if (member.hasPermission(Permission.MANAGE_ROLES)) return;
+
+                // String key = channel.getIdLong() + "-" + member.getIdLong();
+                String key = channel.getIdLong() + "";
+                long last = this.lastInformationsMessage.getOrDefault(key, 0L);
+                if (System.currentTimeMillis() - last < 1000 * 60 * 5) return;
+                this.lastInformationsMessage.put(key, System.currentTimeMillis());
+
+                message.reply(channelType.getDescription()).mentionRepliedUser(false).queue(m2 -> m2.delete().queueAfter(10, TimeUnit.SECONDS));
+
+            } else {
+                this.ticketManager.sendChannelInformations(event, textChannel, channelType);
+            }
         }
     }
 

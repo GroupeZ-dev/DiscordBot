@@ -25,14 +25,14 @@ public class SqlManager {
     public static final ExecutorService service = Executors.newFixedThreadPool(4);
     private final SqlConnection connection = new SqlConnection();
 
-    private final String createRequest = "CREATE TABLE IF NOT EXISTS tickets ( id BIGINT AUTO_INCREMENT PRIMARY KEY, langType VARCHAR(255) NOT NULL, channelId BIGINT NOT NULL, userId BIGINT NOT NULL, ticketStatus VARCHAR(255) NOT NULL, username VARCHAR(255) NOT NULL, ticketType VARCHAR(255) NOT NULL, pluginId BIGINT, notificationSent BOOLEAN NOT NULL DEFAULT FALSE, createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP);";
+    private final String createRequest = "CREATE TABLE IF NOT EXISTS tickets ( id BIGINT AUTO_INCREMENT PRIMARY KEY, langType VARCHAR(255) NOT NULL, channelId BIGINT NOT NULL, userId BIGINT NOT NULL, ticketStatus VARCHAR(255) NOT NULL, username VARCHAR(255) NOT NULL, ticketType VARCHAR(255) NOT NULL, pluginId BIGINT, notificationSent BOOLEAN NOT NULL DEFAULT FALSE, autoCloseDisabled BOOLEAN NOT NULL DEFAULT FALSE, createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP);";
     private final String createMessageRequest = "CREATE TABLE IF NOT EXISTS ticket_messages (id BIGINT AUTO_INCREMENT PRIMARY KEY, ticketId BIGINT NOT NULL, messageId BIGINT NOT NULL, userId BIGINT NOT NULL, username VARCHAR(255) NOT NULL, messageText TEXT NOT NULL, createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (ticketId) REFERENCES tickets(id) ON DELETE CASCADE ON UPDATE CASCADE);";
     private final String createPluginRequest = "CREATE TABLE IF NOT EXISTS ticket_plugins (id BIGINT AUTO_INCREMENT PRIMARY KEY, ticketId BIGINT NOT NULL, pluginVersion VARCHAR(255) NOT NULL,  isLastVersion BOOLEAN NOT NULL, createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (ticketId) REFERENCES tickets(id) ON DELETE CASCADE);";
     private final String createAttachementRequest = "CREATE TABLE IF NOT EXISTS ticket_attachments (id BIGINT AUTO_INCREMENT PRIMARY KEY, ticketId BIGINT NOT NULL, messageId BIGINT NOT NULL, fileContent LONGBLOB NOT NULL, createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (ticketId) REFERENCES tickets(id) ON DELETE CASCADE);";
     private final String createFAQRequest = "CREATE TABLE IF NOT EXISTS ticket_faqs (id BIGINT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL, title VARCHAR(255) NOT NULL, answer TEXT NOT NULL);";
     private final String insertRequest = "INSERT INTO tickets (langType, channelId, userId, ticketStatus, ticketType, pluginId, username) VALUES (?, ?, ?, ?, ?, ?, ?)";
     private final String insertMessageRequest = "INSERT INTO ticket_messages (ticketId, messageId, userId, messageText, username) VALUES (?, ?, ?, ?, ?)";
-    private final String updateRequest = "UPDATE tickets SET ticketStatus = ?, ticketType = ?, pluginId = ?, notificationSent = ?, updatedAt = NOW() WHERE id = ?";
+    private final String updateRequest = "UPDATE tickets SET ticketStatus = ?, ticketType = ?, pluginId = ?, notificationSent = ?, autoCloseDisabled = ?, updatedAt = NOW() WHERE id = ?";
 
     public SqlConnection getSqlConnection() {
         return connection;
@@ -51,6 +51,8 @@ public class SqlManager {
             create(createAttachementRequest);
             create(createFAQRequest);
 
+            addColumnIfNotExists("tickets", "autoCloseDisabled", "BOOLEAN NOT NULL DEFAULT FALSE");
+
             selectTicketsNotClosed(consumer);
         });
     }
@@ -59,6 +61,19 @@ public class SqlManager {
         try (PreparedStatement preparedStatement = this.connection.getConnection().prepareStatement(sql)) {
             preparedStatement.execute();
         } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    private void addColumnIfNotExists(String table, String column, String definition) {
+        try (Connection connection = getConnection();
+             ResultSet resultSet = connection.getMetaData().getColumns(null, null, table, column)) {
+            if (!resultSet.next()) {
+                try (PreparedStatement preparedStatement = connection.prepareStatement("ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition)) {
+                    preparedStatement.execute();
+                }
+            }
+        } catch (SQLException exception) {
             exception.printStackTrace();
         }
     }
@@ -102,7 +117,8 @@ public class SqlManager {
                 preparedStatement.setString(2, ticket.getTicketType().name());
                 preparedStatement.setLong(3, ticket.getPluginId());
                 preparedStatement.setBoolean(4, ticket.isNotificationSent());
-                preparedStatement.setLong(5, ticket.getId());
+                preparedStatement.setBoolean(5, ticket.isAutoCloseDisabled());
+                preparedStatement.setLong(6, ticket.getId());
 
                 preparedStatement.executeUpdate();
             } catch (SQLException exception) {
@@ -129,8 +145,9 @@ public class SqlManager {
                     Timestamp createdAt = resultSet.getTimestamp("createdAt");
                     Timestamp updatedAt = resultSet.getTimestamp("updatedAt");
                     boolean notificationSent = resultSet.getBoolean("notificationSent");
+                    boolean autoCloseDisabled = resultSet.getBoolean("autoCloseDisabled");
 
-                    Ticket ticket = new Ticket(id, LangType.valueOf(langType), channelId, userId, createdAt.getTime(), updatedAt.getTime(), TicketStatus.valueOf(ticketStatus), TicketType.valueOf(ticketType), pluginId, notificationSent);
+                    Ticket ticket = new Ticket(id, LangType.valueOf(langType), channelId, userId, createdAt.getTime(), updatedAt.getTime(), TicketStatus.valueOf(ticketStatus), TicketType.valueOf(ticketType), pluginId, notificationSent, autoCloseDisabled);
                     tickets.add(ticket);
                 }
             } catch (SQLException exception) {
