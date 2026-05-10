@@ -27,6 +27,7 @@ public class Ticket extends ZUtils {
     private TicketType ticketType;
     private long pluginId;
     private boolean notificationSent;
+    private boolean autoCloseDisabled;
     private TextChannel textChannel;
     private TicketAction ticketAction;
     private long lastMessageHourInformation;
@@ -41,7 +42,7 @@ public class Ticket extends ZUtils {
         this.updatedAt = System.currentTimeMillis();
     }
 
-    public Ticket(long id, LangType langType, long channelId, long userId, long createdAt, long updatedAt, TicketStatus ticketStatus, TicketType ticketType, long pluginId, boolean notificationSent) {
+    public Ticket(long id, LangType langType, long channelId, long userId, long createdAt, long updatedAt, TicketStatus ticketStatus, TicketType ticketType, long pluginId, boolean notificationSent, boolean autoCloseDisabled) {
         this.langType = langType;
         this.channelId = channelId;
         this.userId = userId;
@@ -53,6 +54,7 @@ public class Ticket extends ZUtils {
         this.pluginId = pluginId;
         this.ticketAction = ticketStatus.getAction();
         this.notificationSent = notificationSent;
+        this.autoCloseDisabled = autoCloseDisabled;
     }
 
     public long getId() {
@@ -172,6 +174,14 @@ public class Ticket extends ZUtils {
 
     public void setNotificationSent(boolean notificationSent) {
         this.notificationSent = notificationSent;
+    }
+
+    public boolean isAutoCloseDisabled() {
+        return autoCloseDisabled;
+    }
+
+    public void setAutoCloseDisabled(boolean autoCloseDisabled) {
+        this.autoCloseDisabled = autoCloseDisabled;
     }
 
     public long getLastMessageHourInformation() {

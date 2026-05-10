@@ -85,6 +85,7 @@ public class TicketManager extends ZUtils {
             Ticket ticket = iterator.next();
 
             if (ticket.getTicketStatus() == TicketStatus.CLOSE) continue;
+            if (ticket.isAutoCloseDisabled()) continue;
 
             long hoursSinceUpdate = (now - ticket.getUpdatedAt()) / (1000 * 60 * 60);
 
@@ -280,6 +281,11 @@ public class TicketManager extends ZUtils {
 
     public void updateTicket(Ticket ticket) {
         this.sqlManager.updateTicket(ticket, true);
+    }
+
+    public void toggleAutoClose(Ticket ticket) {
+        ticket.setAutoCloseDisabled(!ticket.isAutoCloseDisabled());
+        this.sqlManager.updateTicket(ticket, false);
     }
 
     public void onMessage(MessageReceivedEvent event, Guild guild) {
