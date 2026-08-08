@@ -305,6 +305,16 @@ public class TicketManager extends ZUtils {
 
             ticketAction.preMessageAction(event, event.getMember(), guild, this, ticket);
 
+            // AI auto-response: only for non-staff users in open tickets
+            if (ticket.getTicketStatus() == TicketStatus.OPEN
+                    && !event.getMember().hasPermission(Permission.MESSAGE_MANAGE)) {
+                String content = event.getMessage().getContentRaw();
+                if (!content.isBlank()) {
+                    TextChannel textChannel = ticket.getTextChannel(guild);
+                    instance.getAiManager().processMessage(ticket, content, textChannel, guild);
+                }
+            }
+
             Calendar calendar = Calendar.getInstance();
             int hour = calendar.get(Calendar.HOUR_OF_DAY);
 

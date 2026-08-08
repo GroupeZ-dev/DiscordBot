@@ -7,6 +7,7 @@ import fr.maxlego08.zsupport.command.commands.CommandClose;
 import fr.maxlego08.zsupport.command.commands.CommandCustomerVerify;
 import fr.maxlego08.zsupport.command.commands.CommandDocumentation;
 import fr.maxlego08.zsupport.command.commands.CommandLog;
+import fr.maxlego08.zsupport.command.commands.CommandMibSync;
 import fr.maxlego08.zsupport.command.commands.CommandPauseAutoClose;
 import fr.maxlego08.zsupport.command.commands.CommandPlugins;
 import fr.maxlego08.zsupport.command.commands.CommandPurchase;
@@ -64,6 +65,7 @@ public class CommandManager extends ZUtils implements Constant {
         registerCommand("customer-verify", new CommandCustomerVerify(this));
         registerCommand("close", new CommandClose(this));
         registerCommand("pauseautoclose", new CommandPauseAutoClose(this));
+        registerCommand("mib-sync", new CommandMibSync(this));
     }
 
     public void addCommand(VCommand command) {

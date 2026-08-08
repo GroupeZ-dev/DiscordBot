@@ -68,6 +68,8 @@ public class Persist {
             return def;
         }
 
+        System.out.println("Using config file " + file.getAbsolutePath());
+
         T loaded = this.load(clazz, file);
 
         if (loaded == null) {

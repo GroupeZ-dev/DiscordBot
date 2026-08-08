@@ -7,6 +7,7 @@ import com.mysql.cj.xdevapi.JsonParser;
 import fr.maxlego08.zsupport.Config;
 import fr.maxlego08.zsupport.ZSupport;
 import fr.maxlego08.zsupport.lang.BasicMessage;
+import fr.maxlego08.zsupport.mib.MibRoleManager;
 import fr.maxlego08.zsupport.tickets.storage.SqlManager;
 import fr.maxlego08.zsupport.utils.Constant;
 import fr.maxlego08.zsupport.utils.Plugin;
@@ -30,11 +31,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
-import java.net.URI;
 import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -411,32 +408,35 @@ public class VerifyManager extends ZUtils {
         }
     }
 
+    /**
+     * Interroge Minecraft Inventory Builder sur le droit d'ouvrir un ticket zMenu.
+     *
+     * <p><b>Bug de production corrigé ici.</b> Cette méthode appelait
+     * {@code /api/v1/discord/user/{id}} <b>sans aucun en-tête d'authentification</b> alors que la
+     * route exige un token Sanctum : elle recevait donc 401 à chaque appel. Le repli
+     * {@code MIB(false, 0)} était interprété comme un refus et <b>chaque ticket zMenu partait en
+     * fermeture automatique</b>, salon supprimé une minute plus tard, clients payants compris. Elle
+     * lisait par ailleurs un champ {@code power} que MIB ne renvoie plus.</p>
+     *
+     * <p>On passe donc par {@code GET /api/v2/discord/tiers/{id}} (docs/discord-tier-sync.md §4.4),
+     * derrière le secret dédié {@code X-Bot-Secret}. Toute panne — timeout, 401, 5xx, corps illisible,
+     * secret non renseigné — produit {@link MIB#technicalFailure()} et <b>jamais</b> un refus : c'est
+     * l'appelant qui route vers la validation humaine.</p>
+     *
+     * <p>L'appel est asynchrone et sort du thread JDA, contrairement à l'ancien
+     * {@code HttpClient.send} bloquant qui gelait le callback dans lequel il était invoqué.</p>
+     *
+     * @param textChannel conservé pour la compatibilité des appelants, inutilisé
+     */
     public void verifyMinecraftInventoryUser(User user, TextChannel textChannel, Consumer<MIB> consumer) {
 
-        try {
-
-            String urlAsString = String.format(Config.API_MIB_URL, user.getIdLong());
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder().uri(new URI(urlAsString)).GET().build();
-
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200) {
-                consumer.accept(new MIB(false, 0));
-                return;
-            }
-            Gson gson = ZSupport.instance.getGson();
-
-            Map<String, Object> values = gson.fromJson(response.body(), new TypeToken<Map<String, Object>>() {
-            }.getType());
-
-            if (values.containsKey("can_open") && (boolean) values.get("can_open")) {
-                consumer.accept(new MIB(true, ((Number) values.get("power")).intValue()));
-            } else consumer.accept(new MIB(false, 0));
-
-        } catch (Exception exception) {
-            consumer.accept(new MIB(false, 0));
-            exception.printStackTrace();
-        }
+        MibRoleManager.getInstance().fetchSingleAsync(user.getIdLong(),
+                single -> consumer.accept(single.canOpen() ? MIB.granted(single.tier()) : MIB.denied()),
+                throwable -> {
+                    System.err.println("[MIB] Vérification zMenu impossible pour " + user.getId()
+                            + ", bascule en validation humaine : " + throwable);
+                    consumer.accept(MIB.technicalFailure());
+                });
     }
 
     private void sendErrorMessage(SlashCommandInteractionEvent event, TextChannel textChannel, User user, Guild guild, BasicMessage basicMessage, GUser gUser) {

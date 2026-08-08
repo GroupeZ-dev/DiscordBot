@@ -32,6 +32,11 @@ public class Config implements Savable {
 
     public static String CUSTOM_KEY = "sdfsdkfsldkfsdfdsfkmsdlmf,mdslkflsdk;fkljzedioahrnduidgstjhqsbgvdiyqsdgqksjdzapo§fmazflpo§icjozefdpzokfdozpefijz,fkezfljsdklfzeoirfsndlkfjkezf6+ze5f+zef2+ezf5s3fzef2zef+zfe56z+etfg+rf4+sfg";
     public static String API_URL = "https://groupez.dev/api/v1/discord/%s";
+    /**
+     * Conservée pour ne pas casser les config.json existants, mais plus appelée : cette route exige un
+     * token Sanctum que le bot n'a jamais envoyé, elle répondait donc 401 à chaque vérification zMenu.
+     * Le flux ticket passe désormais par GET /api/v2/discord/tiers/{id}, derrière X-Bot-Secret.
+     */
     public static String API_MIB_URL = "https://minecraft-inventory-builder.com/api/v1/discord/user/%s";
     public static String API_URL_VERIFY_CUSTOMER = "https://groupez.dev/api/v1/discord/%s/apply/%s";
     public static String API_RESOURCE_URL = "https://groupez.dev/api/v1/resource/%s";
@@ -46,6 +51,30 @@ public class Config implements Savable {
     public static Plugin zMenu = new Plugin("zMenu", 1117502546811048098L, 0, 253, 0.0, "zmenu");
     public static long zMenuForum = 1024590761750184016L;
     public static Vacation vacation = null;
+    public static String claudeApiKey = "";
+    public static String voyageApiKey = "";
+    public static String documentationPath = "C:\\Users\\Admin\\Desktop\\groupez\\documentation";
+
+    /*
+     * Synchronisation des paliers Minecraft Inventory Builder vers les rôles zMenuPremium / zMenuPro
+     * (docs/discord-tier-sync.md §8).
+     *
+     * Les deux secrets restent VIDES dans le défaut compilé : ce fichier est suivi par git, et le
+     * CUSTOM_KEY en clair quelques lignes plus haut est un précédent qu'il ne faut pas reproduire.
+     * ZSupport les lit en priorité depuis l'environnement (MIB_RELAY_TOKEN, MIB_API_SECRET) et ne
+     * retombe sur config.json que si la variable est absente.
+     *
+     * Aucun de ces champs n'est transient ni volatile : le Gson de ZSupport exclut précisément ces
+     * deux modificateurs, un champ marqué ainsi ne serait ni sauvegardé ni relu.
+     */
+    public static boolean mibRoleSyncEnabled = true;
+    public static boolean mibDryRun = false;
+    public static String mibRelayUrl = "wss://minecraft-inventory-builder.com/ws";
+    public static String mibRelayToken = "";
+    public static String mibApiBaseUrl = "https://minecraft-inventory-builder.com";
+    public static String mibApiSecret = "";
+    public static int mibReconcileIntervalMinutes = 60;
+    public static int mibMaxRevocations = 200;
 
     private static volatile Config instance;
 

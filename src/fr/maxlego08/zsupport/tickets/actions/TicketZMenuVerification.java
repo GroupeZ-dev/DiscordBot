@@ -31,18 +31,31 @@ public class TicketZMenuVerification extends TicketAction {
                     VerifyManager verifyManager = VerifyManager.getInstance();
 
                     verifyManager.verifyMinecraftInventoryUser(this.user, textChannel, mib -> {
-                        System.out.println(mib);
 
                         editMessage.delete().queue();
-                        if (mib.hasAccess()) {
 
-                            Role role = guild.getRoleById(mib.power() == PREMIUM_POWER ? Config.zMenuPremium : Config.zMenuPro);
-                            if (role != null) guild.addRoleToMember(this.member, role).queue();
-
-                            processNextAction(TicketStatus.PLUGIN_INFORMATION);
-                        } else {
-                            processNextAction(TicketStatus.VERIFY_ZMENU_CLOSE);
+                        // PANNE MIB (timeout, 401, 5xx, corps illisible) : ce n'est PAS un refus. La
+                        // branche de refus supprime le salon au bout d'une minute, une erreur réseau
+                        // ferait donc perdre son ticket à un client payant. On route vers la
+                        // validation humaine (docs/discord-tier-sync.md §7.3).
+                        if (mib.technicalError()) {
+                            processNextAction(TicketStatus.PLUGIN_VERIFY_NEED_INFORMATION);
+                            return;
                         }
+
+                        if (!mib.hasAccess()) {
+                            processNextAction(TicketStatus.VERIFY_ZMENU_CLOSE);
+                            return;
+                        }
+
+                        // Mapping exhaustif avec défaut « aucun rôle ». Le ternaire historique
+                        // (power == PREMIUM_POWER ? zMenuPremium : zMenuPro) accordait au contraire le
+                        // rôle le PLUS ÉLEVÉ dès que le palier n'était pas reconnu : fail-open.
+                        long roleId = mib.tier().roleIdFor(Config.zMenuPremium, Config.zMenuPro);
+                        Role role = roleId == 0L ? null : guild.getRoleById(roleId);
+                        if (role != null) guild.addRoleToMember(this.member, role).queue();
+
+                        processNextAction(TicketStatus.PLUGIN_INFORMATION);
                     });
                     return;
                 }
